@@ -1,155 +1,207 @@
-// create the grid, it's clearer if the grid is generated explicitely
-//
-// -1 -> placeholder, the position is not part of the board, but exist 
-//  1 -> the position contain a "peg"
-//  0 -> the position does not contain a "peg"
-let board = [
-	[-1,-1,-1,-1,-1,-1,-1,-1,-1],
+document.addEventListener("DOMContentLoaded", function () {
+	const gameBoard = document.getElementById("game-board");
 
-	[-1,-1,-1, 1, 1, 1,-1,-1,-1],
-	[-1,-1,-1, 1, 1, 1,-1,-1,-1],
+	// create the grid, it's clearer if the grid is generated explicitely
+	// (english variant)
+	//
+	// -1 -> placeholder, the position is not part of the board, but exist 
+	//  1 -> the position contain a "peg"
+	//  0 -> the position does not contain a "peg"
+	//
+	// https://commons.wikimedia.org/wiki/File:Peg_Solitaire_game_board_shapes.svg (v4)
+	let board = [
+		[-1, -1, -1, -1, -1, -1, -1, -1, -1],
+		[-1, -1, -1, 1, 1, 1, -1, -1, -1],
+		[-1, -1, -1, 1, 1, 1, -1, -1, -1],
+		[-1, 1, 1, 1, 1, 1, 1, 1, -1],
+		[-1, 1, 1, 1, 0, 1, 1, 1, -1],
+		[-1, 1, 1, 1, 1, 1, 1, 1, -1],
+		[-1, -1, -1, 1, 1, 1, -1, -1, -1],
+		[-1, -1, -1, 1, 1, 1, -1, -1, -1],
+		[-1, -1, -1, -1, -1, -1, -1, -1, -1],
+	]
 
-	[-1, 1, 1, 1, 1, 1, 1, 1,-1],
-	[-1, 1, 1, 1, 0, 1, 1, 1,-1],
-	[-1, 1, 1, 1, 1, 1, 1, 1,-1],
-
-	[-1,-1,-1, 1, 1, 1,-1,-1,-1],
-	[-1,-1,-1, 1, 1, 1,-1,-1,-1],
-
-	[-1,-1,-1,-1,-1,-1,-1,-1,-1],
-]
-
-// since the program is in javascript, I will not take optimisations into account 
-// e.g. dedimensionalize the board-array or recalculating only the new 
-// pegs possible moves after a move (the pegs that sourround the last movement 
-// translation vector in a rectangular-like matrix, corner excluded), 
-// but recalculating ALL the pegs possible movements
-
-function printBoard(board) {
-	for (let row = 0; row < board.length; ++row) {
-		for (let col = 0; col < board[row].length; ++col) {
-			if (board[row][col] == -1) {
-				console.log("   ");
-			} else if (board[row][col] == 1) {
-				console.log(" - ");
-			} else if (board[row][col] == 0) {
-				console.log(" 0 ");
-			}
-		}
-		console.log('\n');
-	}
-}
-
-class PossibleMoves {
-	constructor(up, down, left, right) {
-		this.up = up;
-		this.down = down;
-		this.left = left;
-		this.right = right;
-	}
-
-	print() {
-		if (this.up) { console.log("UP"); }
-		if (this.down) { console.log("DOWN"); }
-		if (this.left) { console.log("LEFT"); }
-		if (this.right) { console.log("RIGHT"); }
-		console.log('\n');
-	}
-}
-
-function calculateNewPos(board) {
+	// this dictionnary will encode all the possible moves for each pawn
 	let possibleMoves = {};
 
-	for (let row = 0; row < board.length; ++row) {
-		for (let col = 0; col < board[row].length; ++col) {
-			if (board[row][col] == 1) {
-				const key = `${col}${row}`;
+	// since the program is in javascript, I will not take optimisations into account 
+	// e.g. dedimensionalize the board-array or recalculating only the new 
+	// pegs possible moves after a move (the pegs that sourround the last movement 
+	// translation vector in a rectangular-like matrix, corner excluded), 
+	// but recalculating ALL the pegs possible movements
 
-				// I have decided not to use bitwise manipulation because 
-				// I need to explain the code to my classmates
-				possibleMoves[key] = new PossibleMoves(
-					board[row][col - 1] == 1 && board[row][col - 2] == 0,
-					board[row][col + 1] == 1 && board[row][col + 2] == 0,
-					board[row - 1][col] == 1 && board[row - 2][col] == 0,
-					board[row + 1][col] == 1 && board[row + 2][col] == 0,
+	function generateBoard() {
+		// this function visually generate the board on the webpage from the 
+		// two dimentionnal array given above
+		for (let row = 0; row < board.length; ++row) {
+			for (let col = 0; col < board[row].length; ++col) {
+				const square = document.createElement("div");
+				square.className = "square";
+				square.id = `square-${row}-${col}`;
+				square.addEventListener("click", handleSquareClick);
+				gameBoard.appendChild(square);
 
-				)
+				if (board[row][col] === 1) {
+					const pawn = document.createElement("div");
+					pawn.className = "pawn";
+					pawn.id = `pawn-${row}-${col}`;
+					pawn.addEventListener("click", handlePawnClick);
+					square.appendChild(pawn);
+				}
+
+				if (board[row][col] === -1) {
+					square.classList.add("disabled");
+				}
 			}
 		}
 	}
 
-	return possibleMoves;
-}
+	class PossibleMoves {
+		constructor(up, down, left, right) {
+			this.up = up;
+			this.down = down;
+			this.left = left;
+			this.right = right;
+		}
 
-class Coord {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
+		print() {
+			if (this.up) {console.log("UP");}
+			if (this.down) {console.log("DOWN");}
+			if (this.left) {console.log("LEFT");}
+			if (this.right) {console.log("RIGHT");}
+			console.log('\n');
+		}
 	}
-}
 
-function checkMovement(pigPos, movementType, possibleMoves) {
-	// @param		- pigPos: the position of the pig, of type Coord
-	//				- movementType: the type of the movement, object literal
-	//				- possibleMoves: the dictionnary containing all the possible
-	//					moves for each pig, generated via calculateNewPos
-	// @return		true if the pig can move via the desired movementType
+	function calculateNewPos() {
+		for (let row = 0; row < board.length; ++row) {
+			for (let col = 0; col < board[row].length; ++col) {
+				if (board[row][col] == 1) {
+				const key = `${row}${col}`;
 
-	const mask = 1 << movementType;
-	return (number & mask) !== 0
+					// I have decided not to use bitwise manipulation because 
+					// I need to explain the code to my classmates
+					possibleMoves[key] = new PossibleMoves(
+						board[row - 1][col] == 1 && board[row - 2][col] == 0,
+						board[row + 1][col] == 1 && board[row + 2][col] == 0,
+						board[row][col - 1] == 1 && board[row][col - 2] == 0,
+						board[row][col + 1] == 1 && board[row][col + 2] == 0,
 
-
-}
-
-function renderBoard(board) {
-	const container = document.getElementById('arrayContainer');
-	container.innerHTML = ''; // Clear previous content
-
-	board.forEach(row => {
-		const rowElement = document.createElement('div');
-		rowElement.classList.add('array-row');
-
-		row.forEach(value => {
-			const cell = document.createElement('div');
-			cell.classList.add('array-cell');
-
-			if (value === -1) {
-				cell.classList.add('not-represented');
-			} else if (value === 0) {
-				cell.classList.add('empty');
-			} else if (value === 1) {
-				cell.classList.add('pawn');
+					)
+				}
 			}
+		}
 
-			cell.textContent = value === -1 ? '' : value;
-			rowElement.appendChild(cell);
-		});
-
-		container.appendChild(rowElement);
-	});
-}
-
-
-function main() {
-	const movements = {
-		UP:    0,
-		DOWN:  1,
-		LEFT:  2,
-		RIGHT: 3,
+		return possibleMoves;
 	}
 
-	printBoard(board);
-	let possibleMoves = calculateNewPos(board);
+	class Coord {
+		constructor(x, y) {
+			this.x = x;
+			this.y = y;
+		}
+	}
 
-	possibleMoves["13"].print();
+	function handleSquareClick(event) {
+		const square = event.target;
+		const [squareRow, squareCol] = getSquarePosition(square.id);
+		console.log(`Clicked on square: (${squareRow}, ${squareCol})`);
 
-	for (let key in possibleMoves) {
+		// Check if the square is a possible move
+		if (square.classList.contains("possible-move")) {
+			const selectedPawn = document.querySelector(".selected");
+			if (selectedPawn) {
+				const [pawnRow, pawnCol] = getPawnPosition(selectedPawn.id);
+				movePawn(selectedPawn, pawnRow, pawnCol, squareRow, squareCol);
+			}
+		}
+	}
+
+	function handlePawnClick(event) {
+		const pawn = event.target;
+		const [pawnRow, pawnCol] = getPawnPosition(pawn.id);
+		console.log(`Clicked on pawn: (${pawnRow}, ${pawnCol})`);
+
+		// Remove possible move indicators
+		clearPossibleMoves();
+
+		// Show possible moves
+		showPossibleMoves(pawnRow, pawnCol);
+
+		// Highlight the selected pawn
+		pawn.classList.add("selected");
+	}
+
+	function getPawnPosition(pawnId) {
+		const [, pawnRow, pawnCol] = pawnId.match(/pawn-(\d+)-(\d+)/);
+		return [parseInt(pawnRow), parseInt(pawnCol)];
+	}
+
+	function getSquarePosition(squareId) {
+		const [, squareRow, squareCol] = squareId.match(/square-(\d+)-(\d+)/);
+		return [parseInt(squareRow), parseInt(squareCol)];
+	}
+
+	function isNotDisabledHelper(row, col) {
+		return !square.classList.contains("disabled")
+	}
+
+
+	function showPossibleMoves(row, col) {
+		clearPossibleMoves();
+
+		const key = `${row}${col}`;
+		console.log(key);
+
+		console.log("This pawn can move to:");
 		possibleMoves[key].print();
+
+		if (possibleMoves[key].up) {
+			const squareUp = document.getElementById(`square-${row - 2}-${col}`);
+			squareUp.classList.add("possible-move");
+		}
+
+		if (possibleMoves[key].down) {
+			const squareDown = document.getElementById(`square-${row + 2}-${col}`);
+			squareDown.classList.add("possible-move");
+		}
+
+		if (possibleMoves[key].left) {
+			const squareLeft = document.getElementById(`square-${row}-${col - 2}`);
+			squareLeft.classList.add("possible-move");
+		}
+
+		if (possibleMoves[key].right) {
+			const squareRight = document.getElementById(`square-${row}-${col + 2}`);
+			squareRight.classList.add("possible-move");
+		}
 	}
 
-	renderBoard(board);
 
+	function clearPossibleMoves() {
+		const possibleMoves = document.querySelectorAll(".possible-move");
+		possibleMoves.forEach(move => move.classList.remove("possible-move"));
+	}
 
-}
+	function movePawn(pawn, fromRow, fromCol, toRow, toCol) {
+		// Move the pawn to the new position
+		const toSquare = document.getElementById(`square-${toRow}-${toCol}`);
+		toSquare.appendChild(pawn);
 
-main()
+		// Update the board
+		board[toRow][toCol] = 1;
+		board[fromRow][fromCol] = 0;
+
+		// Remove possible move indicators
+		clearPossibleMoves();
+
+		// Deselect the pawn
+		pawn.classList.remove("selected");
+
+		calculateNewPos();
+	}
+
+	// Initialize the board
+	generateBoard();
+	calculateNewPos();
+});
