@@ -33,6 +33,10 @@ document.addEventListener("DOMContentLoaded", function () {
 	function generateBoard() {
 		// this function visually generate the board on the webpage from the 
 		// two dimentionnal array given above
+		gameBoard.innerHTML = ''; // Clear the existing board
+
+
+
 		for (let row = 0; row < board.length; ++row) {
 			for (let col = 0; col < board[row].length; ++col) {
 				const square = document.createElement("div");
@@ -41,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
 				square.addEventListener("click", handleSquareClick);
 				gameBoard.appendChild(square);
 
+				// if there is a pawn at the in-process pos, then genetate it to markup
 				if (board[row][col] === 1) {
 					const pawn = document.createElement("div");
 					pawn.className = "pawn";
@@ -49,6 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
 					square.appendChild(pawn);
 				}
 
+				// disable if placeholder
 				if (board[row][col] === -1) {
 					square.classList.add("disabled");
 				}
@@ -74,6 +80,8 @@ document.addEventListener("DOMContentLoaded", function () {
 	}
 
 	function calculateNewPos() {
+		possibleMoves = {}; // clear the old possible moves
+
 		for (let row = 0; row < board.length; ++row) {
 			for (let col = 0; col < board[row].length; ++col) {
 				if (board[row][col] == 1) {
@@ -92,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			}
 		}
 
+		console.log("calculating new move");
 		return possibleMoves;
 	}
 
@@ -103,6 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	}
 
 	function handleSquareClick(event) {
+
 		const square = event.target;
 		const [squareRow, squareCol] = getSquarePosition(square.id);
 		console.log(`Clicked on square: (${squareRow}, ${squareCol})`);
@@ -113,11 +123,14 @@ document.addEventListener("DOMContentLoaded", function () {
 			if (selectedPawn) {
 				const [pawnRow, pawnCol] = getPawnPosition(selectedPawn.id);
 				movePawn(selectedPawn, pawnRow, pawnCol, squareRow, squareCol);
+
+
 			}
 		}
 	}
 
 	function handlePawnClick(event) {
+
 		const pawn = event.target;
 		const [pawnRow, pawnCol] = getPawnPosition(pawn.id);
 		console.log(`Clicked on pawn: (${pawnRow}, ${pawnCol})`);
@@ -130,6 +143,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 		// Highlight the selected pawn
 		pawn.classList.add("selected");
+
+
 	}
 
 	function getPawnPosition(pawnId) {
@@ -142,14 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		return [parseInt(squareRow), parseInt(squareCol)];
 	}
 
-	function isNotDisabledHelper(row, col) {
-		return !square.classList.contains("disabled")
-	}
-
-
 	function showPossibleMoves(row, col) {
-		clearPossibleMoves();
-
 		const key = `${row}${col}`;
 		console.log(key);
 
@@ -183,23 +191,43 @@ document.addEventListener("DOMContentLoaded", function () {
 		possibleMoves.forEach(move => move.classList.remove("possible-move"));
 	}
 
+
+
+
 	function movePawn(pawn, fromRow, fromCol, toRow, toCol) {
-		// Move the pawn to the new position
+		// Calculate the position of the jumped-over pawn
+		const jumpedRow = (fromRow + toRow) / 2;
+		const jumpedCol = (fromCol + toCol) / 2;
+
+
+
+		// move pawn to the new position
 		const toSquare = document.getElementById(`square-${toRow}-${toCol}`);
 		toSquare.appendChild(pawn);
-
-		// Update the board
 		board[toRow][toCol] = 1;
 		board[fromRow][fromCol] = 0;
 
-		// Remove possible move indicators
+		// Remove the jumped-over pawn from the DOM and update the board
+		const jumpedPawn = document.getElementById(`pawn-${jumpedRow}-${jumpedCol}`);
+		jumpedPawn.remove(); // Remove the jumped-over pawn from the DOM
+		board[jumpedRow][jumpedCol] = 0; // Update the board
+
+		// remove possible move indicators
 		clearPossibleMoves();
 
-		// Deselect the pawn
+		// deselect the pawn
 		pawn.classList.remove("selected");
 
 		calculateNewPos();
+
+		console.log(board);
+
+		generateBoard();
+
 	}
+
+
+
 
 	// Initialize the board
 	generateBoard();
