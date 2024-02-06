@@ -222,6 +222,17 @@ function movePawn(pawn, fromRow, fromCol, toRow, toCol) {
 
     function updateGame() {
         calculateNewPos();
+
+        for (let key in possibleMoves) {
+
+            if (!(possibleMoves[key].isLocked())) {
+                console.log(possibleMoves[key]);
+                return;
+            }
+        }
+
+        new Promise(resolve => setTimeout(resolve, 5000));
+        generateBoard;
     }
 
     // Initialize the board
