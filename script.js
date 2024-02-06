@@ -21,6 +21,19 @@ document.addEventListener("DOMContentLoaded", function () {
         [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     ];
 
+    class PossibleMoves {
+        constructor(up, down, left, right) {
+            this.up = up;
+            this.down = down;
+            this.left = left;
+            this.right = right;
+        }
+
+        isLocked() {
+            return !(this.up && this.down && this.left && this.right);
+        }
+    }
+
     // this dictionary will encode all the possible moves for each pawn
     let possibleMoves = {};
 
@@ -61,15 +74,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     square.classList.add("disabled");
                 }
             }
-        }
-    }
-
-    class PossibleMoves {
-        constructor(up, down, left, right) {
-            this.up = up;
-            this.down = down;
-            this.left = left;
-            this.right = right;
         }
     }
 
@@ -127,6 +131,12 @@ function handlePawnClick(event) {
     const pawnRow = Math.floor(pawnId / board[0].length);
     const pawnCol = pawnId % board[0].length;
     console.log(`Clicked on pawn: (${pawnRow}, ${pawnCol})`);
+
+    // Deselect previously selected pawn, if any
+    const previouslySelectedPawn = document.querySelector(".selected");
+    if (previouslySelectedPawn) {
+        previouslySelectedPawn.classList.remove("selected");
+    }
 
     // Calculate possible moves
     calculateNewPos();
@@ -207,8 +217,12 @@ function movePawn(pawn, fromRow, fromCol, toRow, toCol) {
     pawn.classList.remove("selected");
 
     // Recalculate possible moves after the move
-    calculateNewPos();
+    updateGame();
 }
+
+    function updateGame() {
+        calculateNewPos();
+    }
 
     // Initialize the board
     calculateNewPos();

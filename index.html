@@ -11,8 +11,12 @@
 
 		#game-board {
 			display: grid;
-			grid-template-columns: repeat(9, 100px);
-			grid-template-rows: repeat(9, 100px);
+			grid-template-columns: repeat(9, 1fr);
+			grid-template-rows: repeat(9, 1fr);
+			padding: 20px;
+			justify-content: center;
+			align-items: center;
+			max-width: 1000px;
 		}
 
 		.square {
@@ -28,7 +32,6 @@
 		}
 
 
-		/* Add keyframes for animation */
 		@keyframes movePawnAnimation {
 			from {
 				transform: translateY(-50px);
@@ -41,7 +44,6 @@
 			}
 		}
 
-		/* Apply animation to the pawn class */
 		.pawn {
 			width: 70%;
 			height: 70%;
