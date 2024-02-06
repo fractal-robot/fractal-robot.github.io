@@ -237,21 +237,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateGame() {
+        // recalculate possible moves 
         calculateNewPos();
+        const pawns = document.querySelectorAll(".pawn");
 
+    {
+            // count the number of remaining pawns 
+            var count = 0;
+            const squares = document.querySelectorAll(".square");
+            squares.forEach(square => {
+                if (square.querySelector(".pawn")) {
+                    count++;
+                }});
+            
+            // if only one is remaining, set it's color and stop the
+            // execution of the program
+            if (count === 1) {
+                pawns.forEach(pawn => {
+                    pawn.style.backgroundColor = '#b8bb26';
+                });
+            }
+
+        }
+
+        // check if a move is possible, if possible return
         for (let key in possibleMoves) {
             if (!possibleMoves[key].isLocked()) {
                 return;
             }
         }
 
-        const pawns = document.querySelectorAll(".pawn");
+        // if not possible change the color of the pawns 
         pawns.forEach(pawn => {
             pawn.style.backgroundColor = '#fb4934';
         });
 
+        // then wait and reset the board
         setTimeout(() => {
-            generateBoard(); // Corrected function call
+            generateBoard(); 
         }, 3000);
     }
 
