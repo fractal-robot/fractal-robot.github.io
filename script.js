@@ -31,8 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // it set in the generateBoard function, need to be global
     var board = deepCopyArray(defaultBoard);
 
-
-
     class PossibleMoves {
         constructor(up, down, left, right) {
             this.up = up;
@@ -119,14 +117,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function handleSquareClick(event) {
-
+        // if a square is clicked
         const square = event.target;
+        // then deduce it's coordinates
         const squareId = parseInt(square.id.replace("square-", ""));
         const squareRow = Math.floor(squareId / board[0].length);
         const squareCol = squareId % board[0].length;
         console.log(`Clicked on square: (${squareRow}, ${squareCol})`);
 
-        // Check if the square is a possible move
+        // and check if the square is a possible move
         if (square.classList.contains("possible-move")) {
             const selectedPawn = document.querySelector(".selected");
             if (selectedPawn) {
@@ -134,69 +133,55 @@ document.addEventListener("DOMContentLoaded", function () {
                 const pawnRow = Math.floor(pawnId / board[0].length);
                 const pawnCol = pawnId % board[0].length;
                 movePawn(selectedPawn, pawnRow, pawnCol, squareRow, squareCol);
-
-
             }
         }
     }
 
 
     function handlePawnClick(event) {
+        // if a pawn is clicked
         const pawn = event.target;
+        // then deduce it't coordinates
         const pawnId = parseInt(pawn.id.replace("pawn-", ""));
         const pawnRow = Math.floor(pawnId / board[0].length);
         const pawnCol = pawnId % board[0].length;
         console.log(`Clicked on pawn: (${pawnRow}, ${pawnCol})`);
 
-        // Deselect previously selected pawn, if any
+        // deselect previously selected pawn, if any
         const previouslySelectedPawn = document.querySelector(".selected");
         if (previouslySelectedPawn) {
             previouslySelectedPawn.classList.remove("selected");
         }
 
-        // Calculate possible moves
-        calculateNewPos();
-
-        // Remove possible move indicators
         clearPossibleMoves();
-
-        // Show possible moves
         showPossibleMoves(pawnRow, pawnCol);
-
-        // Highlight the selected pawn
         pawn.classList.add("selected");
     }
 
-    function showPossibleMoves(row, col) {
-        const key = `${row}${col}`;
-        console.log(key);
 
-        console.log("This pawn can move to:");
+function showPossibleMoves(row, col) {
+    // fetch all the possible directions, and show them by adding the 
+    // possible-move to the possible square
+    const key = `${row}${col}`;
+    const directions = ['up', 'down', 'left', 'right'];
 
-        if (possibleMoves[key].up) {
-            const squareUpId = ((row - 2) * board[0].length) + col;
-            const squareUp = document.getElementById(`square-${squareUpId}`);
-            squareUp.classList.add("possible-move");
+    directions.forEach(direction => {
+        if (possibleMoves[key][direction]) {
+            let newRow = row,
+                newCol = col;
+
+            if (direction === 'up') newRow -= 2;
+            else if (direction === 'down') newRow += 2;
+            else if (direction === 'left') newCol -= 2;
+            else if (direction === 'right') newCol += 2;
+
+            const squareId = (newRow * board[0].length) + newCol;
+            const square = document.getElementById(`square-${squareId}`);
+            square.classList.add("possible-move");
         }
+    });
+}
 
-        if (possibleMoves[key].down) {
-            const squareDownId = ((row + 2) * board[0].length) + col;
-            const squareDown = document.getElementById(`square-${squareDownId}`);
-            squareDown.classList.add("possible-move");
-        }
-
-        if (possibleMoves[key].left) {
-            const squareLeftId = (row * board[0].length) + (col - 2);
-            const squareLeft = document.getElementById(`square-${squareLeftId}`);
-            squareLeft.classList.add("possible-move");
-        }
-
-        if (possibleMoves[key].right) {
-            const squareRightId = (row * board[0].length) + (col + 2);
-            const squareRight = document.getElementById(`square-${squareRightId}`);
-            squareRight.classList.add("possible-move");
-        }
-    }
 
 
     function clearPossibleMoves() {
@@ -205,77 +190,64 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function movePawn(pawn, fromRow, fromCol, toRow, toCol) {
-        // Calculate the position of the jumped-over pawn
-        const jumpedRow = Math.floor((fromRow + toRow) / 2);
-        const jumpedCol = Math.floor((fromCol + toCol) / 2);
-
-        // Move pawn to the new position with animation
+        // move the selected pawn to it's new position
         const toSquareId = (toRow * board[0].length) + toCol;
         const toSquare = document.getElementById(`square-${toSquareId}`);
         toSquare.appendChild(pawn);
+        // and update the square board
         board[toRow][toCol] = 1;
         board[fromRow][fromCol] = 0;
-
-        // Update the id of the pawn to reflect its new position
+        // update the id of the pawn to reflect its new position
         const newPawnId = (toRow * board[0].length) + toCol;
         pawn.id = `pawn-${newPawnId}`;
 
-        // Remove the jumped-over pawn from the DOM and update the board
+        // calculate the position of the jumped-over pawn
+        const jumpedRow = (fromRow + toRow) / 2;
+        const jumpedCol = (fromCol + toCol) / 2;
+        // remove the jumped-over pawn from the DOM and update the board
         const jumpedPawnId = (jumpedRow * board[0].length) + jumpedCol;
         const jumpedPawn = document.getElementById(`pawn-${jumpedPawnId}`);
-        jumpedPawn.remove(); // Remove the jumped-over pawn from the DOM
-        board[jumpedRow][jumpedCol] = 0; // Update the board
+        jumpedPawn.remove();
+        board[jumpedRow][jumpedCol] = 0; // update the board
 
-        // Clear possible move indicators
         clearPossibleMoves();
-
-        // Deselect the pawn
-        pawn.classList.remove("selected");
-
-        // Recalculate possible moves after the move
         updateGame();
     }
 
     function updateGame() {
-        // recalculate possible moves 
         calculateNewPos();
         const pawns = document.querySelectorAll(".pawn");
 
-    {
-            // count the number of remaining pawns 
-            var count = 0;
-            const squares = document.querySelectorAll(".square");
-            squares.forEach(square => {
-                if (square.querySelector(".pawn")) {
-                    count++;
-                }});
-            
-            // if only one is remaining, set it's color and stop the
-            // execution of the program
-            if (count === 1) {
-                pawns.forEach(pawn => {
-                    pawn.style.backgroundColor = '#b8bb26';
-                });
-            }
+        // count the number of remaining pawns 
+        var count = 0;
+        const squares = document.querySelectorAll(".square");
+        squares.forEach(square => {
+            if (square.querySelector(".pawn")) {
+                count++;
+            }});
 
-        }
-
-        // check if a move is possible, if possible return
-        for (let key in possibleMoves) {
-            if (!possibleMoves[key].isLocked()) {
+        // if only one is remaining, set it's color and stop the
+        // execution of the program
+        if (count === 1) {
+            pawns.forEach(pawn => {
+                pawn.style.backgroundColor = '#b8bb26';
                 return;
-            }
+            });
         }
 
-        // if not possible change the color of the pawns 
-        pawns.forEach(pawn => {
-            pawn.style.backgroundColor = '#fb4934';
-        });
+        // if no more move is possible
+        if(Object.values(possibleMoves).every(value => value.isLocked())) {
+            // change the color of the pawns 
+            pawns.forEach(pawn => {
+                pawn.style.backgroundColor = '#fb4934';
+            });
 
-        // then wait and reset the board
-        setTimeout(() => {
-            generateBoard(); 
-        }, 3000);
+            // then wait and reset the board
+            setTimeout(() => {
+                generateBoard(); 
+            }, 1000);
+        }
+
     }
 
     generateBoard();
