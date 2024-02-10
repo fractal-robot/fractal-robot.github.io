@@ -59,8 +59,6 @@ document.addEventListener("DOMContentLoaded", function () {
         gameBoard.innerHTML = ''; // Clear the existing board
 
         board = deepCopyArray(defaultBoard);
-        console.log(board);
-        console.log(defaultBoard);
 
         for (let row = 0; row < board.length; ++row) {
             for (let col = 0; col < board[row].length; ++col) {
@@ -89,6 +87,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
         }
+
+    calculateNewPos();
     }
 
     function calculateNewPos() {
@@ -112,7 +112,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        console.log("calculating new move");
         return possibleMoves;
     }
 
@@ -123,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const squareId = parseInt(square.id.replace("square-", ""));
         const squareRow = Math.floor(squareId / board[0].length);
         const squareCol = squareId % board[0].length;
-        console.log(`Clicked on square: (${squareRow}, ${squareCol})`);
 
         // and check if the square is a possible move
         if (square.classList.contains("possible-move")) {
@@ -145,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const pawnId = parseInt(pawn.id.replace("pawn-", ""));
         const pawnRow = Math.floor(pawnId / board[0].length);
         const pawnCol = pawnId % board[0].length;
-        console.log(`Clicked on pawn: (${pawnRow}, ${pawnCol})`);
 
         // deselect previously selected pawn, if any
         const previouslySelectedPawn = document.querySelector(".selected");
@@ -251,6 +248,5 @@ function showPossibleMoves(row, col) {
     }
 
     generateBoard();
-    calculateNewPos();
 });
 
